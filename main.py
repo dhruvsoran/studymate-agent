@@ -1,9 +1,8 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import List
-from datetime import date
 from agents import StudyPlannerAgent, simulate_miss_and_replan
-from memory import create_user, get_user_profile
+from memory import create_user
 
 app = FastAPI()
 planner = StudyPlannerAgent()
@@ -27,7 +26,7 @@ def ping():
 
 @app.post("/plan")
 def generate_plan(req: PlanRequest):
-    create_user(req.user_id, {"preferred_times":[req.preferred_times], "weak_topics":[]})
+    create_user(req.user_id, {"preferred_times":[req.preferred_times]})
     plan = planner.plan(
         req.user_id,
         req.goal,
@@ -40,5 +39,5 @@ def generate_plan(req: PlanRequest):
 
 @app.post("/adapt")
 def adapt(req: AdaptRequest):
-    new_plan = simulate_miss_and_replan(req.user_id, req.plan, req.miss_index)
-    return {"updated_plan": new_plan}
+    updated = simulate_miss_and_replan(req.user_id, req.plan, req.miss_index)
+    return {"updated_plan": updated}
